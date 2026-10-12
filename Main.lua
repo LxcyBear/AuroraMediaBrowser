@@ -21,7 +21,7 @@ end
 local SKINS_DIR = "Game:\\Skins\\"
 local LAYOUTS_DIR = "Game:\\Media\\Layouts\\"
 local TEMP_REL = "Downloads\\AuroraMediaBrowser\\"
-local ZIP_REL = TEMP_REL .. "package.zip"
+local ZIP_REL = TEMP_REL .. "package.7z"
 local PACKAGE_REL = TEMP_REL .. "package.media"
 local EXTRACT_REL = TEMP_REL .. "unpacked\\"
 local MAX_PACKAGE_BYTES = 350 * 1024 * 1024
@@ -334,18 +334,45 @@ local function downloadAndInstall(pkg)
     prepareStaging()
     local downloadRel = pkg.zip and ZIP_REL or PACKAGE_REL
     local downloadAbs = absolute(downloadRel)
+    local fileToDownload = pkg.path
+    local expectedSize = pkg.size
+    if pkg.zip then
+        -- Aurora's Lua ZipFile library reads 7z archives.
+        -- GitHub Actions prepares a compatible 7z containing the .xzp and layouts.
+        -- The original .zip remains the visible skin in the repository.
+        fileToDownload = "repo/.bundles/" .. pkg.filename .. ".7z"
+        Script.SetStatus("Checking ZIP compatibility bundle...")
+        local metadata, issue = fetch("https://api.github.com/repos/" .. OWNER .. "/" ..
+            REPOSITORY .. "/contents/" .. encodeUrlPath(fileToDownload) .. "?ref=" .. BRANCH)
+        if not metadata then
+            eraseStaging()
+            alert("ZIP not ready", "Could not find the 7z compatibility bundle for " .. pkg.filename ..
+                ".\n\nGitHub Actions builds these automatically after uploading a ZIP. " ..
+                "Check the Build ZIP compatibility bundles workflow.\n\n" .. tostring(issue))
+            Script.SetProgress(0)
+            return
+        end
+        expectedSize = tonumber(metadata:match('"size"%s*:%s*(%d+)'))
+        if not expectedSize or expectedSize < 100 or expectedSize > MAX_PACKAGE_BYTES then
+            eraseStaging()
+            alert("Invalid ZIP bundle", "GitHub returned an invalid bundle file size.")
+            Script.SetProgress(0)
+            return
+        end
+    end
     Script.SetStatus("Downloading " .. pkg.filename .. "...")
     Script.SetProgress(10)
-    local okHttp, http = pcall(Http.Get, rawURL(encodeUrlPath(pkg.path)), downloadRel)
+    local okHttp, http = pcall(Http.Get, rawURL(encodeUrlPath(fileToDownload)), downloadRel)
     if not okHttp or type(http) ~= "table" or http.Success ~= true then
         eraseStaging()
-        alert("Download failed", "Could not download " .. pkg.path)
+        alert("Download failed", "Could not download " .. fileToDownload .. "\n" ..
+            (type(http) == "table" and requestSummary(http) or tostring(http)))
         Script.SetProgress(0)
         return
     end
     local downloadedFile = http.OutputPath or downloadAbs
     if not FileSystem.FileExists(downloadedFile) or
-        FileSystem.GetFileSize(downloadedFile) ~= pkg.size then
+        FileSystem.GetFileSize(downloadedFile) ~= expectedSize then
         eraseStaging()
         alert("Download mismatch", "The download did not match GitHub's file size. Nothing was installed.")
         Script.SetProgress(0)
@@ -358,10 +385,19 @@ local function downloadAndInstall(pkg)
         Script.SetStatus("Extracting ZIP skin...")
         Script.SetProgress(70)
         Script.CreateDirectory("Downloads\\AuroraMediaBrowser\\unpacked")
-        local archive = ZipFile.OpenFile(downloadRel)
-        if not archive or archive:Extract(EXTRACT_REL) ~= true then
+        local opened, archive = pcall(ZipFile.OpenFile, downloadRel)
+        if not opened or not archive then
             eraseStaging()
-            alert("ZIP extraction failed", "Aurora could not extract this ZIP.")
+            alert("Archive could not open", "Aurora could not open the prepared 7z bundle.\n\n" ..
+                (opened and "ZipFile.OpenFile returned nil." or tostring(archive)))
+            Script.SetProgress(0)
+            return
+        end
+        local extracted, result = pcall(function() return archive:Extract(EXTRACT_REL) end)
+        if not extracted or result == false then
+            eraseStaging()
+            alert("7z extraction failed", "Aurora could not extract the prepared 7z bundle.\n\n" ..
+                (extracted and "Extract returned false." or tostring(result)))
             Script.SetProgress(0)
             return
         end
