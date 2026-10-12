@@ -583,7 +583,7 @@ local function browseCategory(category)
         else
             for _, pkg in ipairs(packages) do
                 rows[#rows + 1] = installedState(pkg) .. pkg.name ..
-                    "  (" .. prettySize(pkg.size) .. ")" .. (pkg.zip and " [ZIP]" or "")
+                    "  (" .. prettySize(pkg.size) .. ")"
             end
         end
         local response = Script.ShowPopupList(
