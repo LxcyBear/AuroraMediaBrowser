@@ -1,6 +1,0 @@
-# Aurora Skin Browser v2 - automatically generated. Do not edit.
-# package-path|package-bytes|sha1|installed-xzp-name|zip-xzp-member|zip-layout-members
-Assassin_s Creed Black Flag.xzp|10266760|9a26d2417b82c86a4cf6cd51e647c4428575f207|Assassin_s Creed Black Flag.xzp|-|-
-AuroraFlow.zip|5121529|9e4b33a65e10cddec0f9595121d17fbdd732ad76|AuroraFlow.xzp|AuroraFlow.xzp|Modern_by_MaZ3.cfljson
-Dash.xzp|5568454|1e03fa1a47d1403f4a2ec44ee67f9da0caf1a89a|Dash.xzp|-|-
-MatrixCodeTrinityBootV4.xzp|15508287|3e293728f79b2001c00e778e72bc21fc104bc996|MatrixCodeTrinityBootV4.xzp|-|-
