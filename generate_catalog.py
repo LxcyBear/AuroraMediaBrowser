@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""Build Aurora Skin Browser catalog.txt from XZP and ZIP packages.
-
-Skins may live at repo root or in skins/. ZIPs may contain layout files.
-Generated columns match Aurora Skin Browser v2.1 Main.lua exactly.
-"""
 from pathlib import Path, PurePosixPath
 import hashlib
 import re
