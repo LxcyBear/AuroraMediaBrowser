@@ -11,7 +11,7 @@ import subprocess
 import tempfile
 import zipfile
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]
 ZIP_FOLDER = ROOT / "repo" / "Skins"
 BUNDLE_FOLDER = ROOT / "repo" / ".bundles"
 SAFE = re.compile(r"^[A-Za-z0-9 _().+\-]+$")
