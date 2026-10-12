@@ -34,5 +34,13 @@ jobs:
           git add -A repo/.bundles
           if ! git diff --cached --quiet; then
             git commit -m "Build Aurora-compatible 7z bundles from ZIP skins"
-            git push
+            for attempt in 1 2 3; do
+              git fetch origin main
+              git rebase origin/main
+              if git push origin HEAD:main; then
+                break
+              fi
+              if [ "$attempt" = 3 ]; then exit 1; fi
+              sleep 2
+            done
           fi
