@@ -461,8 +461,7 @@ local function downloadAndInstall(pkg)
             end
         end
     elseif category.key == "Layouts" then
-        alert("Layout installed", pkg.filename .. " is now in " .. LAYOUTS_DIR ..
-            "\n\nChoose it in Aurora's View / Theme layout settings.")
+        alert("Layout installed", pkg.filename .. " in " .. LAYOUTS_DIR)
     else
         alert("Background installed", pkg.filename .. " is now in " .. BACKGROUNDS_DIR ..
             "\n\nIn Aurora's View / Theme settings, press X to refresh available backgrounds.")
